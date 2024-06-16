@@ -18,19 +18,17 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         unique: true,
       },
-      password: DataTypes.STRING,
-      avatar: DataTypes.STRING,
-      active: DataTypes.BOOLEAN,
+      password: {
+        type: DataTypes.STRING,
+      },
+      avatar: {
+        type: DataTypes.STRING,
+      },
+      active: {
+        type: DataTypes.BOOLEAN,
+      },
       createdAt: DataTypes.DATE,
       updatedAt: DataTypes.DATE,
-      twoFactorAuthEnabled: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
-      },
-      twoFactorAuthCode: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
     },
     {
       hooks: {

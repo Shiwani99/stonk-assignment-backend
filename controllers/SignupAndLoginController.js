@@ -1,4 +1,4 @@
-const { Profile } = require("../models");
+const { Profile, twoFA, Notification } = require("../models");
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
@@ -17,14 +17,21 @@ const generateToken = (profile) => {
 const signup = async (req, res) => {
   try {
     const { fullName, username, email, password } = req.body;
+    const active = false;
     const newProfile = await Profile.create({
-      fullName,
-      username,
-      email,
-      password,
+      fullName: fullName,
+      username: username,
+      email: email,
+      password: password,
+      active: active,
     });
-    const token = generateToken(newProfile);
-    res.status(201).json({ profile: newProfile, token });
+
+    await twoFA.create({
+      userId: newProfile.id,
+      twoFactorAuthEnabled: false,
+    });
+
+    res.status(201).json({ profile: newProfile });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -32,13 +39,23 @@ const signup = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, registrationToken } = req.body;
     const profile = await Profile.findOne({ where: { email } });
     if (!profile || !(await profile.validatePassword(password))) {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
+    profile.active = true;
+    await profile.save();
+
+    await Notification.upsert({
+      userId: profile.id,
+      registrationToken: registrationToken,
+      receiveNotifications: true,
+    });
+
     const token = generateToken(profile);
+
     res.status(200).json({ token });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -97,9 +114,24 @@ const googleCallback = (req, res) => {
   res.redirect("/");
 };
 
+const logout = async (req, res) => {
+  try {
+    const token = req.headers.authorization;
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+    const userId = decodedToken.id;
+
+    await Profile.update({ active: false }, { where: { id: userId } });
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error during log out" });
+  }
+};
+
 module.exports = {
   signup,
   login,
   googleSignUp,
   googleCallback,
+  logout,
 };

@@ -40,6 +40,9 @@ app.use("/", authRoutes);
 const profileRoutes = require("./routes/ProfileRoutes");
 app.use("/", profileRoutes);
 
+const channelRoutes = require("./routes/ChannelRoutes");
+app.use("/", channelRoutes);
+
 const PORT = 8080;
 app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);

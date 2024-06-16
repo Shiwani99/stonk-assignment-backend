@@ -13,6 +13,8 @@ router.post("/auth/signup", signupAndLoginController.signup);
 
 router.post("/auth/login", signupAndLoginController.login);
 
+router.post("/auth/logout", signupAndLoginController.logout);
+
 router.get("/auth/google", signupAndLoginController.googleSignUp);
 
 router.get(

@@ -2,34 +2,19 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("Profiles", {
+    await queryInterface.createTable("Followers", {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      fullName: {
-        type: Sequelize.STRING,
-      },
-      username: {
-        type: Sequelize.STRING,
-        unique: true,
+      followerId: {
+        type: Sequelize.UUID,
         allowNull: false,
       },
-      email: {
-        type: Sequelize.STRING,
-        unique: true,
+      followingId: {
+        type: Sequelize.UUID,
         allowNull: false,
-      },
-      password: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      avatar: {
-        type: Sequelize.STRING,
-      },
-      active: {
-        type: Sequelize.BOOLEAN,
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -45,6 +30,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("Profiles");
+    await queryInterface.dropTable("Followers");
   },
 };

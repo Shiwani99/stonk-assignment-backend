@@ -1,4 +1,4 @@
-const { Profile } = require("../models");
+const { Profile, Followers, twoFA } = require("../models");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 
@@ -25,21 +25,30 @@ const fetchProfile = async (req, res) => {
 };
 
 const updateProfile = async (req, res) => {
-  const { email, fullName, username, password } = req.body;
+  const updatedEmail = req.body.email;
+  const updatedUsername = req.body.username;
+  const updatedfullName = req.body.fullName;
+  const updatedPassword = req.body.password;
+
+  const token = req.headers.authorization;
+  const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+  const id = decodedToken.id;
 
   try {
     let user = await Profile.findOne({
-      where: { email: email },
+      where: { id: id },
     });
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    user.fullName = fullName || user.fullName;
-    user.username = username || user.username;
-    if (password) {
-      user.password = password;
+    user.email = updatedEmail || user.email;
+    user.fullName = updatedfullName || user.fullName;
+    user.username = updatedUsername || user.username;
+    if (updatedPassword) {
+      user.password = updatedPassword;
     }
 
     await user.save();
@@ -58,13 +67,13 @@ const sendVerificationEmail = async (email) => {
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: process.env.EMAIL_USERNAME,
-      pass: process.env.EMAIL_PASSWORD,
+      user: process.env.GOOGLE_EMAIL,
+      pass: process.env.GOOGLE_PASSWORD,
     },
   });
 
   const mailOptions = {
-    from: process.env.EMAIL_USERNAME,
+    from: process.env.GOOGLE_EMAIL,
     to: email,
     subject: "Verification Code for 2FA stonk assignment",
     text: `Your verification code is: ${verificationCode}`,
@@ -76,14 +85,16 @@ const sendVerificationEmail = async (email) => {
 };
 
 const requestVerificationCode = async (req, res) => {
-  const { email } = req.body;
-
   try {
-    const user = await Profile.findOne({ where: { email } });
+    const email = req.body.email;
 
-    if (!user) {
+    const profile = await Profile.findOne({ where: { email: email } });
+
+    if (!profile) {
       return res.status(404).json({ error: "User not found" });
     }
+
+    const user = await twoFA.findOne({ where: { userId: profile.id } });
 
     const verificationCode = await sendVerificationEmail(email);
     user.twoFactorAuthCode = verificationCode;
@@ -91,6 +102,7 @@ const requestVerificationCode = async (req, res) => {
 
     res.status(200).json({ message: "Verification code sent successfully" });
   } catch (error) {
+    console.log(error.message);
     res.status(500).json({ error: "Failed to send verification code" });
   }
 };
@@ -105,10 +117,12 @@ const add2FA = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    if (user.twoFactorAuthCode === code) {
-      user.twoFactorAuthEnabled = true;
-      user.twoFactorAuthCode = null;
-      await user.save();
+    const updatedUser = await twoFA.findOne({ where: { userId: user.id } });
+
+    if (updatedUser.twoFactorAuthCode === code) {
+      updatedUser.twoFactorAuthEnabled = true;
+      updatedUser.twoFactorAuthCode = null;
+      await updatedUser.save();
 
       res.status(200).json({ message: "2FA enabled successfully" });
     } else {
@@ -119,10 +133,79 @@ const add2FA = async (req, res) => {
   }
 };
 
+const followProfile = async (req, res) => {
+  const token = req.headers.authorization;
+  const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+  const followerId = decodedToken.id;
+  const followingId = req.body.profileId;
+
+  try {
+    const alreadyFollowing = await Followers.findOne({
+      where: {
+        followerId,
+        followingId,
+      },
+    });
+
+    if (alreadyFollowing) {
+      return res
+        .status(400)
+        .json({ message: "You are already following this profile." });
+    }
+
+    await Followers.create({ followerId, followingId });
+    res.status(200).json({ message: "Profile followed successfully." });
+  } catch (err) {
+    console.error("Error following profile:", err);
+    res
+      .status(500)
+      .json({ error: "An error occurred while following the profile." });
+  }
+};
+
+const unfollowProfile = async (req, res) => {
+  const token = req.headers.authorization;
+  const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+  const followerId = decodedToken.id;
+  const followingId = req.body.profileId;
+
+  try {
+    const following = await Followers.findOne({
+      where: {
+        followerId,
+        followingId,
+      },
+    });
+
+    if (!following) {
+      return res
+        .status(400)
+        .json({ message: "You are not following this profile." });
+    }
+
+    await Followers.destroy({
+      where: {
+        followerId,
+        followingId,
+      },
+    });
+    res.status(200).json({ message: "Profile unfollowed successfully." });
+  } catch (err) {
+    console.error("Error unfollowing profile:", err);
+    res
+      .status(500)
+      .json({ error: "An error occurred while unfollowing the profile." });
+  }
+};
+
 module.exports = {
   fetchProfile,
   updateProfile,
   sendVerificationEmail,
   requestVerificationCode,
   add2FA,
+  followProfile,
+  unfollowProfile,
 };

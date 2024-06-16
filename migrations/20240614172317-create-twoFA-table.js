@@ -1,35 +1,25 @@
 "use strict";
 
 module.exports = {
-  async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("Profiles", {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable("twoFAs", {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
-      },
-      fullName: {
-        type: Sequelize.STRING,
-      },
-      username: {
-        type: Sequelize.STRING,
-        unique: true,
         allowNull: false,
       },
-      email: {
-        type: Sequelize.STRING,
-        unique: true,
+      userId: {
+        type: Sequelize.UUID,
         allowNull: false,
       },
-      password: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      avatar: {
-        type: Sequelize.STRING,
-      },
-      active: {
+      twoFactorAuthEnabled: {
         type: Sequelize.BOOLEAN,
+        defaultValue: false,
+      },
+      twoFactorAuthCode: {
+        type: Sequelize.STRING,
+        allowNull: true,
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -44,7 +34,7 @@ module.exports = {
     });
   },
 
-  async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("Profiles");
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable("twoFAs");
   },
 };

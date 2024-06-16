@@ -11,9 +11,13 @@ router.use(bodyParser.json());
 
 router.get("/profile/fetch", profileController.fetchProfile);
 router.put("/profile/update", profileController.updateProfile);
-//router.post("/profile/2fa", checkAuthentication, add2FA);
+router.post(
+  "/profile/request-verification-code",
+  profileController.requestVerificationCode
+);
+router.post("/profile/add-twofa", profileController.add2FA);
 
-//router.post("/profile/follow", checkAuthentication, followProfile);
-//router.post("/profile/unfollow", checkAuthentication, unfollowProfile);
+router.post("/profile/follow", profileController.followProfile);
+router.post("/profile/unfollow", profileController.unfollowProfile);
 
 module.exports = router;
