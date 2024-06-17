@@ -138,7 +138,7 @@ const followProfile = async (req, res) => {
   const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
 
   const followerId = decodedToken.id;
-  const followingId = req.body.profileId;
+  const followingId = req.params.profileId;
 
   try {
     const alreadyFollowing = await Followers.findOne({
@@ -169,7 +169,7 @@ const unfollowProfile = async (req, res) => {
   const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
 
   const followerId = decodedToken.id;
-  const followingId = req.body.profileId;
+  const followingId = req.params.profileId;
 
   try {
     const following = await Followers.findOne({

@@ -38,6 +38,8 @@ const sendEmail = async (email, subject, body) => {
 
 const sendPushNotifications = async (userId, payload) => {
   try {
+    // requires proper FCM registration token of the device passed from frontend to send push notifications properly to the device
+
     const notifications = await Notification.findAll({ where: { userId } });
     const registrationTokens = notifications.map(
       (notification) => notification.registrationToken
