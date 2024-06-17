@@ -13,6 +13,10 @@ module.exports = (sequelize) => {
       type: DataTypes.UUID,
       allowNull: false,
     },
+    suspended: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
   });
 
   Channel.associate = (models) => {

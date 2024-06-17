@@ -62,7 +62,7 @@ module.exports = (server) => {
       "performAction",
       async ({ action, targetUsername, channelId }) => {
         const role = await Role.findOne({
-          where: { userId: socket.user.id, channelId },
+          where: { userId: socket.user.id, channelId: channelId },
         });
 
         if (!role) return;
@@ -97,53 +97,45 @@ module.exports = (server) => {
   });
 
   const performChannelAction = async (action, targetUserId, channelId) => {
-    const user = await Profile.findByPk(targetUserId);
-    if (!user) return;
-
     switch (action) {
       case "/mute":
-        await user.update({ isMuted: true });
+        await Role.upsert({ userId: targetUserId, channelId, muted: true });
         io.to(channelId).emit("userMuted", { userId: targetUserId });
         break;
       case "/unmute":
-        await user.update({ isMuted: false });
+        await Role.upsert({ userId: targetUserId, channelId, muted: false });
         io.to(channelId).emit("userUnmuted", { userId: targetUserId });
         break;
       case "/ban":
-        await user.update({ isBanned: true });
+        await Role.upsert({ userId: targetUserId, channelId, banned: true });
         io.to(channelId).emit("userBanned", { userId: targetUserId });
         break;
       case "/unban":
-        await user.update({ isBanned: false });
+        await Role.upsert({ userId: targetUserId, channelId, banned: false });
         io.to(channelId).emit("userUnbanned", { userId: targetUserId });
         break;
       case "/set admin":
-        await Role.create({ name: "ADMIN", userId: targetUserId, channelId });
+        await Role.upsert({ name: "ADMIN", userId: targetUserId, channelId });
         io.to(channelId).emit("adminSet", { userId: targetUserId });
         break;
       case "/unset admin":
-        await Role.destroy({
-          where: { userId: targetUserId, channelId, name: "ADMIN" },
-        });
+        await Role.upsert({ name: null, userId: targetUserId, channelId });
         io.to(channelId).emit("adminUnset", { userId: targetUserId });
         break;
-      case action.startsWith("/set title"):
-        const title = action.split('"')[1];
-        await Channel.update({ title }, { where: { id: channelId } });
-        io.to(channelId).emit("channelTitleUpdated", { title });
-        break;
-      case action.startsWith("/set description"):
-        const description = action.split('"')[1];
-        await Channel.update({ description }, { where: { id: channelId } });
-        io.to(channelId).emit("channelDescriptionUpdated", { description });
-        break;
       case "/suspend":
-        await Channel.update(
-          { isSuspended: true },
-          { where: { id: channelId } }
-        );
+        await Channel.update({ suspended: true }, { where: { id: channelId } });
         io.to(channelId).emit("channelSuspended", { channelId });
         break;
+    }
+
+    if (action.startsWith("/set title")) {
+      const title = action.split('"')[1];
+      await Channel.update({ title: title }, { where: { id: channelId } });
+      io.to(channelId).emit("channelTitleUpdated", { title });
+    } else if (action.startsWith("/set description")) {
+      const description = action.split('"')[1];
+      await Channel.update({ description }, { where: { id: channelId } });
+      io.to(channelId).emit("channelDescriptionUpdated", { description });
     }
   };
 };

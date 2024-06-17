@@ -2,16 +2,17 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const passport = require("passport");
 const app = express();
-
 const router = express.Router();
+
+const { signUpValidate, loginValidate } = require("../middleware/auth.js");
 
 const signupAndLoginController = require("../controllers/SignupAndLoginController.js");
 
 router.use(bodyParser.json());
 
-router.post("/auth/signup", signupAndLoginController.signup);
+router.post("/auth/signup", signUpValidate, signupAndLoginController.signup);
 
-router.post("/auth/login", signupAndLoginController.login);
+router.post("/auth/login", loginValidate, signupAndLoginController.login);
 
 router.post("/auth/logout", signupAndLoginController.logout);
 

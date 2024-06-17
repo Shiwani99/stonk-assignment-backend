@@ -55,7 +55,10 @@ const sendPushNotifications = async (userId, payload) => {
 
 const createChannel = async (req, res) => {
   const { title, description } = req.body;
-  const ownerId = req.user.id;
+
+  const token = req.headers.authorization;
+  const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+  const ownerId = decodedToken.id;
 
   try {
     const channel = await Channel.create({

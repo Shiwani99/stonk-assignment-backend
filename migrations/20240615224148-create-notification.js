@@ -15,6 +15,7 @@ module.exports = {
           model: "Profiles",
           key: "id",
         },
+        unique: true,
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },

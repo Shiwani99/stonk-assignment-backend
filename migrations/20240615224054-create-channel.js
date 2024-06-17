@@ -16,6 +16,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
+      suspended: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+      },
       ownerId: {
         type: Sequelize.UUID,
         allowNull: false,

@@ -4,14 +4,14 @@ const jwt = require("jsonwebtoken");
 const socket = io("http://localhost:8080", {
   auth: {
     token:
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUyY2JkOTAwLWJiMTItNGQ2Ni1hZjM4LTRiYTRjNDU4ODM4YiIsImVtYWlsIjoidHl1QGdtYWlsLmNvbSIsImlhdCI6MTcxODU3NTI0MywiZXhwIjoxNzE4NTc4ODQzfQ.HfYkbxga32lTLotdRqhYdLQHRk0YPt1IDMz2_tq_5Cw",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFjNTZjMzFiLWZiY2UtNDA3MC1hNTcyLTk2YjliMmM0NjAxYyIsImVtYWlsIjoieXl6ekBnbWFpbC5jbyIsImlhdCI6MTcxODYyMDcyNSwiZXhwIjoxNzE4NjI0MzI1fQ.PoMJu1L6H_s9nfSuz3nItAfydmpZUodGSvAR2QQJTCE",
   },
 });
 
 socket.on("connect", () => {
   console.log("Connected to WebSocket server");
 
-  const channelId = "d01d98b0-7a13-45f5-afb2-3c3ae3981c97";
+  const channelId = "7cf94e2b-74f7-43d7-803d-e60ab304b005";
   socket.emit("joinChannel", { channelId });
 
   socket.on("channelMessages", (messages) => {
@@ -25,12 +25,12 @@ socket.on("connect", () => {
     console.log("New message:", newMessage);
   });
 
-  const action = "/mute";
-  const targetUserId = "45d1c7c5-2b04-41ba-9f4a-0b6c4a7b8c75";
-  socket.emit("performAction", { action, targetUserId, channelId });
+  const action = '/set description "this is a channel description"';
+  const targetUsername = "rv";
+  socket.emit("performAction", { action, targetUsername, channelId });
 
-  socket.on("userMuted", (data) => {
-    console.log("User muted:", data);
+  socket.on("channelDescriptionUpdated", (data) => {
+    console.log("description", data);
   });
 });
 

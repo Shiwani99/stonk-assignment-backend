@@ -10,6 +10,7 @@ module.exports = (sequelize) => {
     userId: {
       type: DataTypes.UUID,
       allowNull: false,
+      unique: true,
     },
     registrationToken: {
       type: DataTypes.STRING,

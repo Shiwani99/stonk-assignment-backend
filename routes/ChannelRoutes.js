@@ -4,7 +4,7 @@ const {
   createChannel,
   startStream,
 } = require("../controllers/channelController");
-const { authenticateToken, authorize } = require("../middleware/auth");
+const { authenticateToken } = require("../middleware/auth");
 
 router.post("/createChannel", authenticateToken, createChannel);
 router.post("/startStream", authenticateToken, startStream);
