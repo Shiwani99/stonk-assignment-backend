@@ -123,6 +123,7 @@ module.exports = (server) => {
         io.to(channelId).emit("adminUnset", { userId: targetUserId });
         break;
       case "/suspend":
+        console.log("here");
         await Channel.update({ suspended: true }, { where: { id: channelId } });
         io.to(channelId).emit("channelSuspended", { channelId });
         break;

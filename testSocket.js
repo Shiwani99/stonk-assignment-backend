@@ -25,12 +25,12 @@ socket.on("connect", () => {
     console.log("New message:", newMessage);
   });
 
-  const action = '/set description "this is a channel description"';
-  const targetUsername = SOCKET_TARGET_USERNAME;
+  const action = "/suspend";
+  const targetUsername = process.env.SOCKET_TARGET_USERNAME;
   socket.emit("performAction", { action, targetUsername, channelId });
 
-  socket.on("channelDescriptionUpdated", (data) => {
-    console.log("description", data);
+  socket.on("channelSuspended", (data) => {
+    console.log("data", data);
   });
 });
 
